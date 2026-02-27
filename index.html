@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Welcome | Your Business</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      :root {
+        color-scheme: light dark;
+        --bg: #050816;
+        --card: #0b1020;
+        --accent: #4f46e5;
+        --accent-soft: rgba(79, 70, 229, 0.12);
+        --accent-strong: rgba(79, 70, 229, 0.22);
+        --text: #f9fafb;
+        --muted: #9ca3af;
+        --border: rgba(148, 163, 184, 0.25);
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        color: var(--text);
+        background:
+          radial-gradient(900px 600px at 0% 0%, rgba(56, 189, 248, 0.18), transparent),
+          radial-gradient(900px 700px at 100% 100%, rgba(167, 139, 250, 0.18), transparent),
+          var(--bg);
+      }
+      .shell {
+        width: min(960px, 100%);
+        display: grid;
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+        gap: 32px;
+        padding: 28px;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        background: radial-gradient(circle at top left, rgba(148, 163, 184, 0.16), transparent),
+          radial-gradient(circle at bottom right, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.96));
+        box-shadow:
+          0 22px 45px rgba(15, 23, 42, 0.7),
+          0 0 0 1px rgba(15, 23, 42, 0.85);
+      }
+      @media (max-width: 720px) {
+        .shell {
+          grid-template-columns: minmax(0, 1fr);
+          padding: 22px;
+        }
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(1.9rem, 2.4vw + 1rem, 2.4rem);
+        letter-spacing: 0.02em;
+      }
+      .accent-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 11px;
+        margin-bottom: 12px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid rgba(148, 163, 184, 0.55);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--muted);
+      }
+      .accent-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: #22c55e;
+        box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.2);
+      }
+      p {
+        margin: 10px 0 0;
+        line-height: 1.6;
+        color: var(--muted);
+        font-size: 0.97rem;
+      }
+      .cta-row {
+        margin-top: 22px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .btn-primary,
+      .btn-ghost {
+        border-radius: 999px;
+        padding: 10px 18px;
+        font-size: 0.95rem;
+        border: 1px solid transparent;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #4f46e5, #06b6d4);
+        border-color: rgba(129, 140, 248, 0.9);
+        color: white;
+        box-shadow:
+          0 12px 30px rgba(37, 99, 235, 0.55),
+          0 0 0 1px rgba(15, 23, 42, 0.9);
+      }
+      .btn-primary:hover {
+        filter: brightness(1.05);
+      }
+      .btn-ghost {
+        background: rgba(15, 23, 42, 0.7);
+        border-color: rgba(148, 163, 184, 0.7);
+        color: var(--muted);
+      }
+      .btn-ghost:hover {
+        background: rgba(15, 23, 42, 0.95);
+      }
+      .btn-primary span,
+      .btn-ghost span {
+        font-size: 1.05em;
+      }
+      .right {
+        border-radius: 16px;
+        padding: 16px 16px 14px;
+        background: radial-gradient(circle at top, rgba(79, 70, 229, 0.35), transparent),
+          radial-gradient(circle at bottom, rgba(8, 47, 73, 0.8), rgba(15, 23, 42, 0.95));
+        border: 1px solid rgba(148, 163, 184, 0.45);
+      }
+      .right-title {
+        margin: 0 0 6px;
+        font-size: 0.98rem;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: rgba(226, 232, 240, 0.9);
+      }
+      .right-sub {
+        margin: 0 0 14px;
+        font-size: 0.84rem;
+        color: var(--muted);
+      }
+      .info-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        font-size: 0.9rem;
+      }
+      .info-list li {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 7px 0;
+        border-top: 1px solid rgba(15, 23, 42, 0.85);
+      }
+      .info-list li:first-of-type {
+        border-top: 0;
+      }
+      .info-label {
+        color: rgba(148, 163, 184, 0.95);
+      }
+      .info-value {
+        font-weight: 500;
+        color: rgba(226, 232, 240, 0.98);
+      }
+      .tag-row {
+        margin-top: 14px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .tag {
+        padding: 4px 9px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: rgba(15, 23, 42, 0.85);
+        color: rgba(209, 213, 219, 0.95);
+      }
+      a {
+        color: inherit;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell" aria-label="Welcome to Your Business">
+      <section>
+        <div class="accent-pill">
+          <span class="accent-dot" aria-hidden="true"></span>
+          Open for new projects
+        </div>
+        <h1>Your Business Name</h1>
+        <p>
+          Welcome to your new online home. Use this simple page to introduce your business, explain what
+          you do, and invite visitors to get in touch. Everything here is static HTML, so it will work
+          perfectly on GitHub Pages or any basic web host.
+        </p>
+        <p>
+          Replace this text with a short description of your services, your values, or what makes you
+          different. Keep it clear and friendly so visitors know they are in the right place.
+        </p>
+        <div class="cta-row">
+          <a href="mailto:hello@example.com" class="btn-primary">
+            <span>Contact us</span>
+          </a>
+          <a href="#services" class="btn-ghost">
+            <span>View services</span>
+          </a>
+        </div>
+      </section>
+
+      <aside class="right">
+        <h2 class="right-title" id="services">At a glance</h2>
+        <p class="right-sub">Update the details below to match your business.</p>
+        <ul class="info-list">
+          <li>
+            <span class="info-label">Location</span>
+            <span class="info-value">Your City</span>
+          </li>
+          <li>
+            <span class="info-label">Hours</span>
+            <span class="info-value">Mon–Fri · 9:00–17:00</span>
+          </li>
+          <li>
+            <span class="info-label">Phone</span>
+            <span class="info-value"><a href="tel:+1234567890">+1 (234) 567‑890</a></span>
+          </li>
+          <li>
+            <span class="info-label">Email</span>
+            <span class="info-value"><a href="mailto:hello@example.com">hello@example.com</a></span>
+          </li>
+        </ul>
+        <div class="tag-row" aria-label="Example services">
+          <span class="tag">Consulting</span>
+          <span class="tag">Design</span>
+          <span class="tag">Development</span>
+          <span class="tag">Support</span>
+        </div>
+      </aside>
+    </main>
+  </body>
+</html>
+
