@@ -216,6 +216,66 @@
         statusEl.textContent = text;
       }
 
+      function evaluateLocally(expr) {
+        const raw = String(expr ?? "").trim();
+        if (!raw) {
+          throw new Error("Empty expression");
+        }
+
+        // Basic allow‑list: digits, operators, parentheses, dot, comma, space and letters
+        // (for names like pi, e, sqrt, sin, log, etc.).
+        const compact = raw.replace(/\s+/g, "");
+        if (!/^[0-9+\-*/%.(),_a-zA-Z]+$/.test(compact)) {
+          throw new Error("Unsupported characters");
+        }
+
+        let js = raw;
+        // Constants
+        js = js.replace(/\bpi\b/g, "Math.PI");
+        js = js.replace(/\be\b/g, "Math.E");
+        js = js.replace(/\btau\b/g, "Math.PI * 2");
+
+        // Functions
+        js = js.replace(/\bsqrt\(/g, "Math.sqrt(");
+        js = js.replace(/\bsin\(/g, "Math.sin(");
+        js = js.replace(/\bcos\(/g, "Math.cos(");
+        js = js.replace(/\btan\(/g, "Math.tan(");
+        js = js.replace(/\basin\(/g, "Math.asin(");
+        js = js.replace(/\bacos\(/g, "Math.acos(");
+        js = js.replace(/\batan\(/g, "Math.atan(");
+        js = js.replace(/\bexp\(/g, "Math.exp(");
+        js = js.replace(/\babs\(/g, "Math.abs(");
+        js = js.replace(/\bround\(/g, "Math.round(");
+        js = js.replace(/\bfloor\(/g, "Math.floor(");
+        js = js.replace(/\bceil\(/g, "Math.ceil(");
+
+        // log(x) and log(x, base) → Math.log(x) / Math.log(base)
+        js = js.replace(/\blog10\(/g, "Math.log10(");
+        js = js.replace(/\bln\(/g, "Math.log(");
+
+        // Very small helper to support log(x, base) via JS.
+        js = js.replace(
+          /\blog\(([^,()]+),\s*([^()]+)\)/g,
+          "(Math.log($1) / Math.log($2))"
+        );
+        js = js.replace(/\blog\(/g, "Math.log(");
+
+        // Use a Function wrapper so we don't touch surrounding scope.
+        let result;
+        try {
+          // eslint-disable-next-line no-new-func
+          const fn = new Function('"use strict"; return (' + js + ");");
+          result = fn();
+        } catch (err) {
+          throw new Error("Invalid expression");
+        }
+
+        if (typeof result !== "number" || !Number.isFinite(result)) {
+          throw new Error("Expression did not produce a finite number");
+        }
+        return result;
+      }
+
       async function evaluate(expr) {
         const sameOriginApi = location.protocol.startsWith("http") && location.port === "8000";
         const apiUrl = sameOriginApi ? "/api/eval" : "http://127.0.0.1:8000/api/eval";
@@ -269,17 +329,34 @@
         if (!expr) return;
         setStatus("…");
         try {
-          const data = await evaluate(expr);
-          if (data.ok) {
-            miniEl.textContent = expr;
-            const asString = String(data.result);
-            setExpr(asString);
-            setStatus("OK");
-          } else {
-            setStatus("Error: " + String(data.error ?? "Unknown error"));
+          let value = null;
+          let usedLocal = false;
+          try {
+            const data = await evaluate(expr);
+            if (data && typeof data === "object" && "ok" in data) {
+              if (data.ok) {
+                value = data.result;
+              } else {
+                setStatus("Error: " + String(data.error ?? "Unknown error"));
+                return;
+              }
+            } else {
+              usedLocal = true;
+              value = evaluateLocally(expr);
+            }
+          } catch {
+            // If the Python server is not reachable (e.g. on GitHub Pages),
+            // fall back to a local, in‑browser evaluator.
+            usedLocal = true;
+            value = evaluateLocally(expr);
           }
+
+          miniEl.textContent = expr;
+          const asString = String(value);
+          setExpr(asString);
+          setStatus(usedLocal ? "OK (local)" : "OK");
         } catch (err) {
-          setStatus("Error: could not reach the server (run python web_calculator.py).");
+          setStatus("Error: " + (err && err.message ? err.message : "Could not evaluate"));
         }
       }
 
