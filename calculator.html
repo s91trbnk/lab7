@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Python Calculator</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      :root {
+        color-scheme: light;
+        --bg: #0b1020;
+        --card: #111a33;
+        --text: #eef2ff;
+        --muted: #a9b3d6;
+        --accent: #6ee7ff;
+        --border: rgba(255, 255, 255, 0.12);
+        --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+      }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans",
+          "Apple Color Emoji", "Segoe UI Emoji";
+        background: radial-gradient(1200px 600px at 10% 10%, rgba(110, 231, 255, 0.15), transparent),
+          radial-gradient(1200px 600px at 90% 20%, rgba(167, 139, 250, 0.14), transparent),
+          var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      .card {
+        width: min(420px, 100%);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+        padding: 22px 22px 18px;
+      }
+      h1 {
+        margin: 0 0 6px;
+        font-size: 20px;
+        letter-spacing: 0.3px;
+      }
+      .sub {
+        margin: 0 0 18px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.35;
+      }
+      code {
+        color: var(--accent);
+      }
+
+      .calc {
+        display: grid;
+        gap: 12px;
+      }
+
+      .display {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: rgba(17, 26, 51, 0.75);
+        padding: 12px 12px 10px;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      }
+      .display .expr {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        font-size: 12px;
+        color: var(--muted);
+        min-height: 16px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .display input {
+        width: 100%;
+        height: 44px;
+        border: 0;
+        outline: none;
+        background: transparent;
+        color: var(--text);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        font-size: 28px;
+        text-align: right;
+        padding: 0;
+      }
+      .display .status {
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--muted);
+        min-height: 16px;
+      }
+
+      .keys {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+
+      .key {
+        height: 52px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text);
+        font-size: 16px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .key:hover {
+        border-color: rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.07);
+      }
+      .key.op {
+        border-color: rgba(110, 231, 255, 0.35);
+        background: rgba(110, 231, 255, 0.12);
+      }
+      .key.op:hover {
+        background: rgba(110, 231, 255, 0.18);
+      }
+      .key.danger {
+        border-color: rgba(248, 113, 113, 0.35);
+        background: rgba(248, 113, 113, 0.12);
+      }
+      .key.danger:hover {
+        background: rgba(248, 113, 113, 0.18);
+      }
+      .key.equals {
+        grid-column: 4;
+        grid-row: span 2;
+        height: auto;
+        font-size: 18px;
+        border-color: rgba(167, 139, 250, 0.45);
+        background: rgba(167, 139, 250, 0.18);
+      }
+      .key.equals:hover {
+        background: rgba(167, 139, 250, 0.26);
+      }
+      .key.wide {
+        grid-column: span 2;
+      }
+
+      .hint {
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.35;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>Python Calculator</h1>
+      <p class="sub">
+        A simple calculator UI. Click buttons (or type) and press <code>=</code> / Enter to evaluate.
+      </p>
+
+      <div class="calc" role="application" aria-label="Calculator">
+        <div class="display">
+          <div id="mini" class="expr" aria-label="Expression"></div>
+          <input id="screen" type="text" inputmode="decimal" aria-label="Display" />
+          <div id="status" class="status" aria-live="polite"></div>
+        </div>
+
+        <div class="keys" aria-label="Keys">
+          <button class="key danger" data-action="clear" type="button">C</button>
+          <button class="key danger" data-action="backspace" type="button">⌫</button>
+          <button class="key op" data-value="(" type="button">(</button>
+          <button class="key op" data-value=")" type="button">)</button>
+
+          <button class="key op" data-value="%" type="button">%</button>
+          <button class="key op" data-value="**" type="button">xʸ</button>
+          <button class="key op" data-value="/" type="button">÷</button>
+          <button class="key op" data-value="*" type="button">×</button>
+
+          <button class="key" data-value="7" type="button">7</button>
+          <button class="key" data-value="8" type="button">8</button>
+          <button class="key" data-value="9" type="button">9</button>
+          <button class="key op" data-value="-" type="button">−</button>
+
+          <button class="key" data-value="4" type="button">4</button>
+          <button class="key" data-value="5" type="button">5</button>
+          <button class="key" data-value="6" type="button">6</button>
+          <button class="key op" data-value="+" type="button">+</button>
+
+          <button class="key op" data-value="pi" type="button">π</button>
+          <button class="key" data-value="1" type="button">1</button>
+          <button class="key" data-value="2" type="button">2</button>
+          <button class="key" data-value="3" type="button">3</button>
+
+          <button class="key wide" data-value="0" type="button">0</button>
+          <button class="key" data-value="." type="button">.</button>
+          <button class="key equals" data-action="equals" type="button">=</button>
+        </div>
+      </div>
+
+      <div class="hint">
+        Tip: functions are supported too, e.g. <code>sqrt(9)</code>, <code>sin(pi/2)</code>,
+        <code>log(64, 2)</code>.
+      </div>
+    </main>
+
+    <script>
+      const screenEl = document.getElementById("screen");
+      const miniEl = document.getElementById("mini");
+      const statusEl = document.getElementById("status");
+
+      function setStatus(text) {
+        statusEl.textContent = text;
+      }
+
+      async function evaluate(expr) {
+        const sameOriginApi = location.protocol.startsWith("http") && location.port === "8000";
+        const apiUrl = sameOriginApi ? "/api/eval" : "http://127.0.0.1:8000/api/eval";
+
+        const res = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ expr }),
+        });
+        return await res.json();
+      }
+
+      function getExpr() {
+        return (screenEl.value || "").trim();
+      }
+
+      function setExpr(value) {
+        screenEl.value = value;
+      }
+
+      function insertText(text) {
+        const start = screenEl.selectionStart ?? screenEl.value.length;
+        const end = screenEl.selectionEnd ?? screenEl.value.length;
+        screenEl.setRangeText(text, start, end, "end");
+      }
+
+      function append(value) {
+        insertText(value);
+      }
+
+      function sanitizeExpression(text) {
+        // Keep keyboard input "calculator-like": numbers + basic operators only.
+        // Also allow spaces and map '^' to Python exponent '**'.
+        const mapped = String(text).replaceAll("^", "**");
+        return mapped.replaceAll(/[^0-9+\-*/%.() \n]/g, "");
+      }
+
+      function clearAll() {
+        miniEl.textContent = "";
+        setExpr("");
+        setStatus("");
+      }
+
+      function backspace() {
+        const v = getExpr();
+        setExpr(v.slice(0, -1));
+      }
+
+      async function doEquals() {
+        const expr = getExpr();
+        if (!expr) return;
+        setStatus("…");
+        try {
+          const data = await evaluate(expr);
+          if (data.ok) {
+            miniEl.textContent = expr;
+            const asString = String(data.result);
+            setExpr(asString);
+            setStatus("OK");
+          } else {
+            setStatus("Error: " + String(data.error ?? "Unknown error"));
+          }
+        } catch (err) {
+          setStatus("Error: could not reach the server (run python web_calculator.py).");
+        }
+      }
+
+      document.querySelectorAll(".key").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const action = btn.getAttribute("data-action");
+          const value = btn.getAttribute("data-value");
+
+          if (action === "clear") return clearAll();
+          if (action === "backspace") return backspace();
+          if (action === "equals") return await doEquals();
+          if (typeof value === "string") {
+            append(value);
+            setStatus("");
+            screenEl.focus();
+            screenEl.setSelectionRange(screenEl.value.length, screenEl.value.length);
+          }
+        });
+      });
+
+      // Keyboard support
+      screenEl.addEventListener("keydown", async (e) => {
+        // Allow common editing/navigation keys
+        if (
+          e.key === "Backspace" ||
+          e.key === "Delete" ||
+          e.key === "ArrowLeft" ||
+          e.key === "ArrowRight" ||
+          e.key === "Home" ||
+          e.key === "End" ||
+          e.key === "Tab"
+        ) {
+          return;
+        }
+        if (e.key === "Enter" || e.key === "=") {
+          e.preventDefault();
+          await doEquals();
+          return;
+        }
+        if (e.key === "Escape") {
+          e.preventDefault();
+          clearAll();
+          return;
+        }
+
+        // Keep typing calculator-compatible
+        if (e.ctrlKey || e.metaKey || e.altKey) return; // allow copy/paste shortcuts
+        const allowed = /^[0-9+\-*/%.() ]$/;
+        if (allowed.test(e.key)) return;
+        if (e.key === "^") {
+          e.preventDefault();
+          insertText("**");
+          return;
+        }
+        // Block everything else (letters, etc.)
+        e.preventDefault();
+      });
+
+      // Sanitize paste / IME input
+      screenEl.addEventListener("input", () => {
+        const sanitized = sanitizeExpression(screenEl.value);
+        if (screenEl.value !== sanitized) {
+          const caret = screenEl.selectionStart ?? sanitized.length;
+          screenEl.value = sanitized;
+          screenEl.setSelectionRange(Math.min(caret, sanitized.length), Math.min(caret, sanitized.length));
+        }
+      });
+
+      // If the user types digits/operators while not focused, route them to the display
+      window.addEventListener("keydown", (e) => {
+        const tag = (e.target && e.target.tagName) || "";
+        if (tag === "INPUT" || tag === "TEXTAREA") return;
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        if (e.key === "Enter" || e.key === "=") return;
+        if (e.key === "Escape") return;
+
+        const allowed = /^[0-9+\-*/%.() ]$/;
+        if (allowed.test(e.key)) {
+          screenEl.focus();
+          insertText(e.key);
+          e.preventDefault();
+          return;
+        }
+        if (e.key === "^") {
+          screenEl.focus();
+          insertText("**");
+          e.preventDefault();
+        }
+      });
+
+      // Make the display feel like a calculator (still editable for typing)
+      setExpr("2+2");
+      setStatus("Ready");
+      screenEl.focus();
+      screenEl.setSelectionRange(screenEl.value.length, screenEl.value.length);
+    </script>
+  </body>
+</html>
+
